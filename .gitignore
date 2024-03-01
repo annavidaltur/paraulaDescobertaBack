@@ -1,0 +1,26 @@
+# Dependencias instaladas por npm
+/node_modules
+
+# Archivo de logs
+*.log
+
+# Archivos de configuración locales
+.env
+
+# Archivos generados durante el desarrollo
+.DS_Store
+npm-debug.log*
+
+# Caché de dependencias o builds
+/.pnp
+.pnp.js
+/build
+
+# Archivo de respuestas temporales
+npm-debug.log*
+
+# Directorio de respuestas de pruebas
+/coverage
+
+# Archivo .vscode
+.vscode
