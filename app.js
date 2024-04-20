@@ -1,45 +1,71 @@
 const express = require('express');
 const app = express();
-const fs = require('fs');
-const readline = require('readline');
-const path = require('path');
+const { wordSet } = require('./paraules.js');
+const bodyParser = require('body-parser');
+
+// Middleware
+app.use((req, res, next) => {
+  res.setHeader('Access-Control-Allow-Origin', '*'); // Permitir acceso desde cualquier origen
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE'); // Permitir métodos específicos
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization'); // Permitir encabezados específicos
+  next();
+});
+
+// Middleware para analizar el cuerpo de las solicitudes
+app.use(bodyParser.json());
 
 // Ruta de inicio
 app.get('/', (req, res) => {
   res.send('¡Hola mundo desde Express.js!');
 });
 
-// Ruta del archivo que contiene la lista de palabras
-const archivoPalabras = path.join(__dirname, 'paraules.txt');
+// Obtenemos una palabra aleatoria
+let palabraDiaria;
+const seleccionarPalabraDiaria = () => {
+  const indice = Math.floor(Math.random() * wordSet.length);
+  palabraDiaria = wordSet[indice];
+};
+seleccionarPalabraDiaria();
+console.log(palabraDiaria)
 
-// Endpoint para obtener una palabra aleatoria
-app.get('/GetPalabraDiaria', (req, res) => {
-  // Leer el archivo de palabras
-  const palabras = [];
-  const rl = readline.createInterface({
-    input: fs.createReadStream(archivoPalabras),
-    output: process.stdout,
-    terminal: false
-  });
+// Endpoint para comprobar la palabra existe en el conjunto de palabras
+app.post('/CheckWord', (req, res) => {  
+  const { word } = req.body;
+  console.log(word)
+  // Verificar si la palabra es la correcta
+  const isCorrect = palabraDiaria.withoutAccent === word.toLowerCase();
 
-  rl.on('line', (line) => {
-    palabras.push(line);
-  });
+  // Verificar si la palabra existe en el conjunto de palabras
+  const exists = wordSet.some(item => item.withoutAccent === word.toLowerCase());
+  
+  const disabledLetters = [];
+  if(exists){
+    // Deshabilitar letras que no sean correctas ni almost
+    for (let i = 0; i < word.length; i++) {
+      const letter = word[i].toLowerCase()  ;
+      if (!palabraDiaria.withoutAccent.includes(letter)) {
+        disabledLetters.push(letter.toUpperCase());
+      }   
+  // const correct = palabraDiaria.withoutAccent[letterPos] === letter
+  // const almost = !correct && letter !== "" && correctWordClean.includes(letter)
+  // const letterState = currAttempt.attempt > attemptVal &&
+  //     (correct ? "correct" : almost ? "almost" : "error"); 
+    }
+  }
 
-  rl.on('close', () => {
-    // Obtener un índice aleatorio dentro del rango de la lista
-    const indiceAleatorio = Math.floor(Math.random() * palabras.length);
-
-    // Obtener la palabra aleatoria
-    const palabraAleatoria = palabras[indiceAleatorio];
-
-    // Enviar la palabra aleatoria como respuesta
-    res.send(palabraAleatoria);
-  });
+  // Enviar una respuesta al front
+  res.json({ exists, isCorrect, disabledLetters });
 });
 
+app.get('/GetPalabraDiaria', (req, res) => {
+  res.send(palabraDiaria);
+});
+
+
 // Iniciar el servidor
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
   console.log(`Servidor iniciado en el puerto ${PORT}`);
 });
+
+
