@@ -38,23 +38,27 @@ app.post('/CheckWord', (req, res) => {
   // Verificar si la palabra existe en el conjunto de palabras
   const exists = wordSet.some(item => item.withoutAccent === word.toLowerCase());
   
+  // Determinar l'estat de cada lletra i deshabilitar les incorrectes
   const disabledLetters = [];
-  if(exists){
-    // Deshabilitar letras que no sean correctas ni almost
+  const rowState = [];
+  if(exists){    
     for (let i = 0; i < word.length; i++) {
-      const letter = word[i].toLowerCase()  ;
+      const letter = word[i].toLowerCase();
+      
+      const correct = palabraDiaria.withoutAccent[i] === letter
+      const almost = !correct && letter !== "" && palabraDiaria.withoutAccent.includes(letter)      
+      const letterState = correct ? "correct" : almost ? "almost" : "error";
+      
+      rowState.push(letterState);
+      
       if (!palabraDiaria.withoutAccent.includes(letter)) {
         disabledLetters.push(letter.toUpperCase());
       }   
-  // const correct = palabraDiaria.withoutAccent[letterPos] === letter
-  // const almost = !correct && letter !== "" && correctWordClean.includes(letter)
-  // const letterState = currAttempt.attempt > attemptVal &&
-  //     (correct ? "correct" : almost ? "almost" : "error"); 
     }
   }
 
   // Enviar una respuesta al front
-  res.json({ exists, isCorrect, disabledLetters });
+  res.json({ exists, isCorrect, disabledLetters, rowState });
 });
 
 app.get('/GetPalabraDiaria', (req, res) => {
