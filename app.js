@@ -58,7 +58,7 @@ app.post('/CheckWord', (req, res) => {
   }
 
   // Enviar una respuesta al front
-  res.json({ exists, isCorrect, disabledLetters, rowState, correctWord: isCorrect ? palabraDiaria.correct : "" });
+  res.json({ exists, isCorrect, disabledLetters, rowState });
 });
 
 app.get('/GetPalabraDiaria', (req, res) => {
