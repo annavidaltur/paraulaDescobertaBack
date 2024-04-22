@@ -31,10 +31,10 @@ console.log(palabraDiaria)
 // Endpoint para comprobar la palabra existe en el conjunto de palabras
 app.post('/CheckWord', (req, res) => {  
   const { word } = req.body;
-  console.log(word)
+
   // Verificar si la palabra es la correcta
   const isCorrect = palabraDiaria.withoutAccent === word.toLowerCase();
-
+  
   // Verificar si la palabra existe en el conjunto de palabras
   const exists = wordSet.some(item => item.withoutAccent === word.toLowerCase());
   
@@ -58,7 +58,7 @@ app.post('/CheckWord', (req, res) => {
   }
 
   // Enviar una respuesta al front
-  res.json({ exists, isCorrect, disabledLetters, rowState });
+  res.json({ exists, isCorrect, disabledLetters, rowState, correctWord: isCorrect ? palabraDiaria.correct : "" });
 });
 
 app.get('/GetPalabraDiaria', (req, res) => {
