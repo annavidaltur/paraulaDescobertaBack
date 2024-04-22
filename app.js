@@ -2,6 +2,7 @@ const express = require('express');
 const app = express();
 const { wordSet } = require('./paraules.js');
 const bodyParser = require('body-parser');
+const cron = require('node-cron');
 
 // Middleware
 app.use((req, res, next) => {
@@ -27,6 +28,12 @@ const seleccionarPalabraDiaria = () => {
 };
 seleccionarPalabraDiaria();
 console.log(palabraDiaria)
+
+// Tarea para seleccionar una nueva palabra diaria cada día a las 00:00
+cron.schedule('0 0 * * *', () => {
+  seleccionarPalabraDiaria();
+  console.log('Nueva palabra diaria seleccionada:', palabraDiaria);
+});
 
 // Endpoint para comprobar la palabra existe en el conjunto de palabras
 app.post('/CheckWord', (req, res) => {  
