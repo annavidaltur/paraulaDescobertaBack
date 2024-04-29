@@ -1,8 +1,13 @@
 const express = require('express');
-const app = express();
 const { wordSet } = require('../paraules.js');
 const bodyParser = require('body-parser');
-const cron = require('node-cron');
+import { cron } from './cron.js';
+
+const app = express();
+
+// const cron = require('node-cron');
+
+app.use('./cron', cron);
 
 // Middleware
 app.use((req, res, next) => {
@@ -30,10 +35,10 @@ seleccionarPalabraDiaria();
 console.log(palabraDiaria)
 
 // Tarea para seleccionar una nueva palabra diaria cada día a las 00:00
-cron.schedule('0 0 * * *', () => {
-  seleccionarPalabraDiaria();
-  console.log('Nueva palabra diaria seleccionada:', palabraDiaria);
-});
+// cron.schedule('0 0 * * *', () => {
+//   seleccionarPalabraDiaria();
+//   console.log('Nueva palabra diaria seleccionada:', palabraDiaria);
+// });
 
 // Endpoint para comprobar la palabra existe en el conjunto de palabras
 app.post('/CheckWord', (req, res) => {  
@@ -74,9 +79,9 @@ app.get('/GetPalabraDiaria', (req, res) => {
 
 
 // Iniciar el servidor
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => {
   console.log(`Servidor iniciado en el puerto ${PORT}`);
 });
 
-
+module.exports = app;
