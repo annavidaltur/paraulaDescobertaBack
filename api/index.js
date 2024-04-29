@@ -1,6 +1,6 @@
 const express = require('express');
 const app = express();
-const { wordSet } = require('./paraules.js');
+const { wordSet } = require('../paraules.js');
 const bodyParser = require('body-parser');
 const cron = require('node-cron');
 
