@@ -1,12 +1,3 @@
-export const cron = () => {
-    
-    console.log('CRON!');
+export default () => {
 
 };
-
-// module.exports = (req, res) => {
-//     res.send({
-//       status: 200,
-//       message: "Hello world!!",
-//     });
-//   };
