@@ -1,16 +1,24 @@
+require('dotenv').config();
+
 const express = require('express');
 const { wordSet } = require('../paraules.js');
 const bodyParser = require('body-parser');
-import cron from './cron.js';
+const { createClient } = require('@supabase/supabase-js');
+// import cron from './cron.js';
 
 const app = express();
 
-cron();
+// Vercel cronJob
+// cron();
+
+// Connectar BBDD
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+const supabase = createClient(supabaseUrl, supabaseKey);
 
 // Middleware
 app.use((req, res, next) => {
-  res.setHeader('Access-Control-Allow-Origin', 'https://paraula-descoberta-front.vercel.app'); // Permitir acceso desde cualquier origen
-  res.setHeader('Access-Control-Allow-Origin', 'http://localhost:3000');
+  res.setHeader('Access-Control-Allow-Origin', process.env.URL_FRONT); // Permitir acceso desde cualquier origen
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST'); // Permitir métodos específicos
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization'); // Permitir encabezados específicos
   next();
@@ -19,24 +27,13 @@ app.use((req, res, next) => {
 // Middleware para analizar el cuerpo de las solicitudes
 app.use(bodyParser.json());
 
-// Ruta de inicio
-// app.get('/', (req, res) => {
-//   res.json(wordSet);
-// });
-
 // Obtenemos una palabra aleatoria
-let palabraDiaria;
-const seleccionarPalabraDiaria = () => {
+let paraulaDiaria;
+const seleccionarParaulaDiaria = () => {
   const indice = Math.floor(Math.random() * wordSet.length);
-  palabraDiaria = wordSet[indice];
+  paraulaDiaria = wordSet[indice];
 };
-seleccionarPalabraDiaria();
-
-// Tarea para seleccionar una nueva palabra diaria cada día a las 00:00
-// cron.schedule('0 0 * * *', () => {
-//   seleccionarPalabraDiaria();
-//   console.log('Nueva palabra diaria seleccionada:', palabraDiaria);
-// });
+seleccionarParaulaDiaria();
 
 // Endpoint para comprobar la palabra existe en el conjunto de palabras
 app.post('/CheckWord', (req, res) => {  
@@ -71,15 +68,30 @@ app.post('/CheckWord', (req, res) => {
   res.json({ exists, isCorrect, disabledLetters, rowState });
 });
 
-app.get('/GetPalabraDiaria', (req, res) => {
-  res.send(palabraDiaria);
+app.get('/GetParaulaDiaria', (req, res) => {
+  res.send(paraulaDiaria);
+});
+
+app.get('/GetUserStats', async (req, res) => {
+  try {
+    const { data: result, error } = await supabase.from('UserStats').select('*').eq('userId', req.query.userId);
+    if (error) {
+      console.error('Error: ', error.message);
+      res.status(500).send('Error');
+      return;
+    }
+    res.send(result);
+  } catch (error) {
+    console.error('Error:', error.message);
+    res.status(500).send('Error');
+  }
 });
 
 
 // Iniciar el servidor
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
-  console.log(`Servidor iniciado en el puerto ${PORT}`);
+  console.log(`Servidor iniciat en el port ${PORT}`);
 });
 
 module.exports = app;
