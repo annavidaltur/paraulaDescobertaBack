@@ -6,13 +6,12 @@ const bodyParser = require('body-parser');
 const { createClient } = require('@supabase/supabase-js');
 const cookieParser = require('cookie-parser');
 const { v4: uuidv4 } = require('uuid');
-
-// import cron from './cron.js';
+import cron from './cron.js';
 
 const app = express();
 
 // Vercel cronJob
-// cron();
+cron();
 
 // Connectar BBDD
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -37,7 +36,6 @@ let paraulaDiaria;
 const seleccionarParaulaDiaria = () => {
   const indice = Math.floor(Math.random() * wordSet.length);
   paraulaDiaria = wordSet[indice];
-  console.log("paraula: ", paraulaDiaria)
 };
 seleccionarParaulaDiaria();
 
@@ -81,16 +79,10 @@ app.post('/CheckWord', (req, res) => {
 });
 
 const updateStats = async (userId, isCorrect, attempt) => {
-  const { data: oldStats, error } = await supabase.from('UserStats').select('*').eq('userId', userId).single();
-  console.log('userId', userId)
-  if (error) {
-    console.error('Error fetching stats', error);
-    return;
-  }
+  const { data: oldStats, error } = await supabase.from('UserStats').select('*').eq('userId', userId).single();  
 
   if (oldStats) {
     // L'usuari ja existeix, actualitzem les estadístiques
-    console.log('usuari ja existeix, actualitzem les estadístiques')
     const currentStreak = calculateCurrentStreak(oldStats, isCorrect);
     const updatedStats = {
       nPlayed: oldStats.nPlayed + 1,
@@ -112,7 +104,6 @@ const updateStats = async (userId, isCorrect, attempt) => {
     }
   } else {
     // Primera vegada que completa el joc, insertem registre
-    console.log('nou usuari')
     const newStats = {
       userId: userId,
       nPlayed: 1,
@@ -147,7 +138,6 @@ app.post('/UpdateCookie', (req, res) => {
   const now = Date.now();
   const ttl = 86400000; // 24h
   let connectId = req.cookies.connectId ? JSON.parse(decodeURIComponent(req.cookies.connectId)) : null;
-  console.log('connectId', connectId)
   if (connectId) {
     connectId.lastUsed = now;
     if (!connectId.userId) // Debería tener userId asignado, si no lo tiene generamos uno nuevo o intentamos recuperarlo (to)
@@ -175,15 +165,24 @@ app.get('/GetParaulaDiaria', (req, res) => {
   res.send(paraulaDiaria);
 });
 
+const emptyStats = { userId: 0, nPlayed: 0, nGuessed: 0, attempts1: 0, attempts2: 0, attempts3: 0, attempts4: 0, attempts5: 0, attempts6: 0, currentStreak: 0, bestStreak: 0 };
+
 app.get('/GetUserStats', async (req, res) => {
+  if (req.cookies.connectId == undefined)// Primera vegada que entra, no té usuari
+    return res.send(emptyStats);
+    
+
   try {
+    
     const userId = JSON.parse(decodeURIComponent(req.cookies.connectId)).userId;
     const { data: result, error } = await supabase.from('UserStats').select('*').eq('userId', userId).single();
-    if (error) {
-      console.error('Error: ', error.message);
-      res.status(500).send('Error');
-      return;
-    }
+    if (error || !result) 
+      {
+        console.log("Error: ", error)
+        return res.send(emptyStats);
+      }
+      
+
     res.send(result);
   } catch (error) {
     console.error('Error:', error.message);
