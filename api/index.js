@@ -153,9 +153,9 @@ app.post('/UpdateCookie', (req, res) => {
 
   res.cookie('connectId', encodeURIComponent(JSON.stringify(connectId)), {
     maxAge: ttl,
-    httpOnly: true, // asegura que la cookie no sea accesible desde JavaScript
-    secure: true,   // asegura que la cookie solo sea enviada a través de HTTPS
-    sameSite: 'lax' // previene el envío de la cookie en solicitudes cross-site
+    httpOnly: process.env.HTTP_ONLY, // asegura que la cookie no sea accesible desde JavaScript
+    secure: process.env.SECURE,   // asegura que la cookie solo sea enviada a través de HTTPS
+    sameSite: process.env.SAME_SITE // previene el envío de la cookie en solicitudes cross-site
   });
 
   res.send({ message: 'Cookie updated', userId: connectId.userId });
