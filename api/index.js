@@ -6,12 +6,14 @@ const bodyParser = require('body-parser');
 const { createClient } = require('@supabase/supabase-js');
 const cookieParser = require('cookie-parser');
 const { v4: uuidv4 } = require('uuid');
-import cron from './cron.js';
+const { CronJob } = require('cron');
+
+// import cron from './cron.js';
 
 const app = express();
 
 // Vercel cronJob
-cron();
+// cron();
 
 // Connectar BBDD
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -38,6 +40,10 @@ const seleccionarParaulaDiaria = () => {
   paraulaDiaria = wordSet[indice];
 };
 seleccionarParaulaDiaria();
+
+// Cron job
+const job = new CronJob('0 6 * * *', seleccionarParaulaDiaria, null, true, 'Europe/Madrid');
+job.start();
 
 // Endpoint para comprobar la palabra existe en el conjunto de palabras
 app.post('/CheckWord', (req, res) => {
