@@ -102,6 +102,18 @@ const updateStats = async (userId, isCorrect, attempt) => {
       currentStreak: currentStreak,
       bestStreak: Math.max(oldStats.bestStreak, currentStreak),
     };
+    const attempts = [
+      updatedStats.attempts1,
+      updatedStats.attempts2,
+      updatedStats.attempts3,
+      updatedStats.attempts4,
+      updatedStats.attempts5,
+      updatedStats.attempts6
+    ];
+    const filteredAttempts = attempts.filter(attempt => attempt > 0);
+
+    const bestTry = isCorrect ? Math.min(...filteredAttempts) : oldStats.bestTry;
+    updatedStats.bestTry = bestTry
 
     const { error: updateError } = await supabase.from('UserStats').update(updatedStats).eq('userId', userId);
 
@@ -109,7 +121,7 @@ const updateStats = async (userId, isCorrect, attempt) => {
       console.error('Error updating stats', updateError);
     }
   } else {
-    // Primera vegada que completa el joc, insertem registre
+    // Primera vegada que completa el joc, insertem registre    
     const newStats = {
       userId: userId,
       nPlayed: 1,
@@ -122,6 +134,7 @@ const updateStats = async (userId, isCorrect, attempt) => {
       attempts6: isCorrect && attempt === 6 ? 1 : 0,
       currentStreak: isCorrect ? 1 : 0,
       bestStreak: isCorrect ? 1 : 0,
+      bestTry: isCorrect? attempt : 0,
     };
 
     const { error: insertError } = await supabase.from('UserStats').insert(newStats);
@@ -171,22 +184,17 @@ app.get('/GetParaulaDiaria', (req, res) => {
   res.send(paraulaDiaria);
 });
 
-const emptyStats = { userId: 0, nPlayed: 0, nGuessed: 0, attempts1: 0, attempts2: 0, attempts3: 0, attempts4: 0, attempts5: 0, attempts6: 0, currentStreak: 0, bestStreak: 0 };
+const emptyStats = { userId: 0, nPlayed: 0, nGuessed: 0, attempts1: 0, attempts2: 0, attempts3: 0, attempts4: 0, attempts5: 0, attempts6: 0, currentStreak: 0, bestStreak: 0, bestTry: 0 };
 
 app.get('/GetUserStats', async (req, res) => {
   if (req.cookies.connectId == undefined)// Primera vegada que entra, no té usuari
     return res.send(emptyStats);
-    
 
   try {
-    
     const userId = JSON.parse(decodeURIComponent(req.cookies.connectId)).userId;
     const { data: result, error } = await supabase.from('UserStats').select('*').eq('userId', userId).single();
     if (error || !result) 
-      {
-        console.log("Error: ", error)
-        return res.send(emptyStats);
-      }
+      return res.send(emptyStats);
       
 
     res.send(result);
