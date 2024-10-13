@@ -22,7 +22,7 @@ const supabase = createClient(supabaseUrl, supabaseKey);
 
 // Middleware
 app.use((req, res, next) => {
-  res.setHeader('Access-Control-Allow-Origin', process.env.URL_FRONT); // Permitir accés des de qualsevol origen
+  res.setHeader('Access-Control-Allow-Origin', 'https://paraula-descoberta-front.vercel.app'); // Permitir accés des de qualsevol origen
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST'); // Permitir métodos específicos
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization'); // Permitir encabezados específicos
   res.setHeader('Access-Control-Allow-Credentials', 'true'); // Permitir cookies
