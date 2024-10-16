@@ -21,12 +21,12 @@ const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 const supabase = createClient(supabaseUrl, supabaseKey);
 
 // Middleware
-app.use((req, res, next) => {
+app.options('/(.*)', (req, res) => {
   res.setHeader('Access-Control-Allow-Origin', 'https://paraula-descoberta-front.vercel.app'); // Permitir accés des de qualsevol origen
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST'); // Permitir métodos específicos
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization'); // Permitir encabezados específicos
   res.setHeader('Access-Control-Allow-Credentials', 'true'); // Permitir cookies
-  next();
+  res.sendStatus(200);
 });
 
 // Middleware para analizar el cuerpo de las solicitudes
