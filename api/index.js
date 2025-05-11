@@ -1,4 +1,4 @@
-require('dotenv').config();
+require('dotenv').config({path: '.env.dev'});
 
 const express = require('express');
 const { wordSet } = require('../paraules.js');
@@ -7,7 +7,7 @@ const { createClient } = require('@supabase/supabase-js');
 const cookieParser = require('cookie-parser');
 const { v4: uuidv4 } = require('uuid');
 const { CronJob } = require('cron');
-
+const cors = require('cors');
 // import cron from './cron.js';
 
 const app = express();
@@ -16,18 +16,17 @@ const app = express();
 // cron();
 
 // Connectar BBDD
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+const supabaseUrl = process.env.SUPABASE_URL;
+const supabaseKey = process.env.SUPABASE_ANON_KEY;
 const supabase = createClient(supabaseUrl, supabaseKey);
 
-// Middleware
-app.options('/(.*)', (req, res) => {
-  res.setHeader('Access-Control-Allow-Origin', 'https://paraula-descoberta-front.vercel.app'); // Permitir accés des de qualsevol origen
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization'); // Permitir encabezados específicos
-  res.setHeader('Access-Control-Allow-Credentials', 'true'); // Permitir cookies
-  res.sendStatus(200);
-});
+// Configurar CORS
+app.use(cors({
+  origin: process.env.URL_FRONT,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  credentials: true
+}));
 
 // Middleware para analizar el cuerpo de las solicitudes
 app.use(bodyParser.json());
@@ -38,25 +37,13 @@ const seleccionarParaulaDiaria = async () => {
     .from('ParaulesDiaries')
     .select('correct, withoutAccent')
     .order('date', { ascending: false })  // per obtenir la més recent
-    .single();
-
-  if (error) 
+    .limit(1);
+    console.log("Paraula diària:", data?.[0]);
+    if (error) 
     console.error("Error al llegir la paraula diaria", error);
 
-  return data;
+  return data[0];
 };
-
-// // Obtenemos una palabra aleatoria
-// let paraulaDiaria;
-// const seleccionarParaulaDiaria = () => {
-//   const indice = Math.floor(Math.random() * wordSet.length);
-//   paraulaDiaria = wordSet[indice];
-// };
-// seleccionarParaulaDiaria();
-
-// Cron job
-// const job = new CronJob('0 6 * * *', seleccionarParaulaDiaria, null, true, 'Europe/Madrid');
-// job.start();
 
 // Endpoint para comprobar la palabra existe en el conjunto de palabras
 app.post('/CheckWord', async (req, res) => {
@@ -173,9 +160,14 @@ app.post('/UpdateCookie', async (req, res) => {
   const now = Date.now();
   const ttl = 86400000; // 24h
   let connectId = req.cookies.connectId ? JSON.parse(decodeURIComponent(req.cookies.connectId)) : null;
-  if (connectId) {
+  
+  if (connectId && connectId.playedToday === true) {
     connectId.lastUsed = now;
     const { data, error } = await supabase.from('UserStats').select('lastPlayed').eq('userId', connectId.userId).single();
+    if(error) {
+      console.error('Error al llegir la data de l\'usuari', error);
+      return res.status(500).send('Error al llegir la data de l\'usuari');
+    }
     const lastPlayed = new Date(data.lastPlayed).toISOString().split('T')[0];
     const today = new Date().toISOString().split('T')[0];
 
