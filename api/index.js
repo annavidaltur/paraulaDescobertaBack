@@ -16,13 +16,13 @@ const app = express();
 // cron();
 
 // Connectar BBDD
-const supabaseUrl = process.env.SUPABASE_URL;
-const supabaseKey = process.env.SUPABASE_ANON_KEY;
+const supabaseUrl = process.env.NEXT_SUPABASE_URL;
+const supabaseKey = process.env.NEXT_SUPABASE_ANON_KEY;
 const supabase = createClient(supabaseUrl, supabaseKey);
 
 // Configurar CORS
 app.use(cors({
-  origin: process.env.URL_FRONT,
+  origin: process.env.NEXT_URL_FRONT,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
   credentials: true
