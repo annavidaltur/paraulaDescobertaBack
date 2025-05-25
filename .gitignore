@@ -5,7 +5,8 @@
 *.log
 
 # Archivos de configuración locales
-.env
+.env.pre
+.env.dev
 
 # Archivos generados durante el desarrollo
 .DS_Store
