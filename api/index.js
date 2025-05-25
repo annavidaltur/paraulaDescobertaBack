@@ -161,7 +161,7 @@ app.post('/UpdateCookie', async (req, res) => {
   const ttl = 86400000; // 24h
   let connectId = req.cookies.connectId ? JSON.parse(decodeURIComponent(req.cookies.connectId)) : null;
   
-  if (connectId && connectId.playedToday === true) {
+  if (connectId) {
     connectId.lastUsed = now;
     const { data, error } = await supabase.from('UserStats').select('lastPlayed').eq('userId', connectId.userId).single();
     if(error) {
@@ -181,7 +181,7 @@ app.post('/UpdateCookie', async (req, res) => {
       ttl: ttl,
       lastUsed: now,
       lastSynced: now,
-      userId: uuidv4()
+      userId: uuidv4()&& connectId.playedToday === true
     };
   }
 
