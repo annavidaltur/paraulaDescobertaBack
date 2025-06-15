@@ -7,6 +7,7 @@
 # Archivos de configuración locales
 .env.pre
 .env.dev
+.env.pro
 
 # Archivos generados durante el desarrollo
 .DS_Store
