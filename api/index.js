@@ -163,10 +163,22 @@ app.post('/UpdateCookie', async (req, res) => {
   console.log("Request origin:", req.headers.origin);
   const now = Date.now();
   const ttl = 86400000; // 24h
-  let connectId = req.cookies.connectId ? JSON.parse(decodeURIComponent(req.cookies.connectId)) : null;
+
+  // Get cookie
+  let connectId;
+  try{
+    const rawCookie = req.cookies.connectId;
+    connectId = rawCookie ? JSON.parse(decodeURIComponent(rawCookie)) : null;
+  } catch (error) {
+    console.error('Error al parsejar la cookie connectId:', error);
+    connectId = null;
+  }
   
-  if (connectId) {
+  // Actualitzem lastPlayed si la cookie existeix
+  if (connectId && connectId.userId) {
     connectId.lastUsed = now;
+
+    // ha jugat hui?
     const { data, error } = await supabase.from('UserStats').select('lastPlayed').eq('userId', connectId.userId).single();
     if(error) {
       console.error('Error al llegir la data de l\'usuari', error);
@@ -175,17 +187,17 @@ app.post('/UpdateCookie', async (req, res) => {
     const lastPlayed = new Date(data.lastPlayed).toISOString().split('T')[0];
     const today = new Date().toISOString().split('T')[0];
 
+    // si ja jugat hui no actualitzem la cookie
     if (lastPlayed === today)
       return res.send({ playedToday: true });
-
-    if (!connectId.userId) // Debería tener userId asignado, si no lo tiene generamos uno nuevo o intentamos recuperarlo (to)
-      connectId.userId = uuidv4();
   } else {
+    // nou usuari. creem la cookie
     connectId = {
       ttl: ttl,
       lastUsed: now,
       lastSynced: now,
-      userId: uuidv4()&& connectId.playedToday === true
+      userId: uuidv4(),
+      playedToday: false
     };
   }
 
