@@ -19,10 +19,13 @@ const app = express();
 const supabaseUrl = process.env.NEXT_SUPABASE_URL;
 const supabaseKey = process.env.NEXT_SUPABASE_ANON_KEY;
 const supabase = createClient(supabaseUrl, supabaseKey);
+const urlFront = process.env.NEXT_URL_FRONT || 'https://www.parauldadescoberta.cat/';
+console.log("URL Front:", urlFront);
+
 
 // Configurar CORS
 app.use(cors({
-  origin: process.env.NEXT_URL_FRONT,
+  origin: 'https://www.parauldadescoberta.cat',
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
   credentials: true
@@ -157,6 +160,7 @@ const calculateCurrentStreak = (stats, isCorrect) => {
 };
 
 app.post('/UpdateCookie', async (req, res) => {
+  console.log("Request origin:", req.headers.origin);
   const now = Date.now();
   const ttl = 86400000; // 24h
   let connectId = req.cookies.connectId ? JSON.parse(decodeURIComponent(req.cookies.connectId)) : null;
