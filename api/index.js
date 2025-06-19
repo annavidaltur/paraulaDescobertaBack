@@ -19,13 +19,11 @@ const app = express();
 const supabaseUrl = process.env.NEXT_SUPABASE_URL;
 const supabaseKey = process.env.NEXT_SUPABASE_ANON_KEY;
 const supabase = createClient(supabaseUrl, supabaseKey);
-const urlFront = process.env.NEXT_URL_FRONT || 'https://www.parauldadescoberta.cat/';
-console.log("URL Front:", urlFront);
-
+const urlFront = process.env.NEXT_URL_FRONT;
 
 // Configurar CORS
 app.use(cors({
-  origin: 'https://www.parauldadescoberta.cat',
+  origin: urlFront,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
   credentials: true
