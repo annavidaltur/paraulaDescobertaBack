@@ -60,6 +60,8 @@ app.post('/CheckWord', async (req, res) => {
 
   // Determinar l'estat de cada lletra i deshabilitar les incorrectes
   const disabledLetters = [];
+  const correctLetters = [];
+  const almostLetters = [];
   const rowState = [];
   if (exists) {
     for (let i = 0; i < word.length; i++) {
@@ -67,12 +69,16 @@ app.post('/CheckWord', async (req, res) => {
 
       const correct = paraulaDiaria.withoutAccent[i] === letter
       const almost = letter !== "" && paraulaDiaria.withoutAccent.includes(letter)
-      const letterState = correct ? "correct" : almost ? "almost" : "error";
 
-      rowState.push(letterState);
-
-      if (!paraulaDiaria.withoutAccent.includes(letter)) {
+      if(correct){
+        correctLetters.push(letter);
+        rowState.push("correct");
+      } else if(almost) {
+        almostLetters.push(letter);
+        rowState.push("almost");
+      } else {
         disabledLetters.push(letter);
+        rowState.push("error");
       }
     }
   }
@@ -83,7 +89,7 @@ app.post('/CheckWord', async (req, res) => {
   }
 
   // Enviar la resposta al front
-  res.json({ exists, isCorrect, disabledLetters, rowState });
+  res.json({ exists, isCorrect, disabledLetters, rowState, correctLetters, almostLetters });
 });
 
 const updateStats = async (userId, isCorrect, attempt) => {
